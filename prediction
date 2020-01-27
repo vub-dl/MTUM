@@ -1,42 +1,30 @@
-predict_mtum <- function(model, df.test){
+# Multitreatment uplift modeling prediction
+# Based on single treatment uplift modeling by Floris Devriendt
+
+predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outcome_negative){
   
-  ## Factoring Target variable ##
-  df.test[,model$targetVariable] <- factor(df.test[,model$targetVariable])
-  levels(df.test[,model$targetVariable]) <- c(model$targetNegativeClass, model$targetPositiveClass)
+  if(approach == "sma"){
   
-  ## Testing a model in this methodology goes as followed:
-  #   1) Retrieve the probability of an individual responding when he is not being treated (treatmentVariable = 0).
-  #   2) Retrieve the probability of an individual responding when he is being treated with Treatment 1 (treatmentVariable1 = 1).
-  #   3) Retrieve the probability of an individual responding when he is being treated with Treatment 2 (treatmentVariable1 = 2).
+    # Factorize outcome variable
+    df_test[,outcome] <- factor(df_test[,outcome)
+    levels(df_test[,outcome]) <- c(outcome_negative, outcome_positive)
+    # Scores control
+    pred_control <- extractProb(list(model_control), testX = df_test[,features],testY = df_test[,outcome])
+    pred_control <- pred_control[pred_control$dataType == "Test",]
+    # Scores treatment 1
+    pred_t1 <- extractProb(list(model_t1), testX = df_test[,features],testY = df_test[,outcome])
+    pred_t1 <- pred_t1[pred_t1$dataType == "Test",]
+    # Scores treatment 2
+    pred_t2 <- extractProb(list(model_t2), testX = df_test[,features],testY = df_test[,outcome])
+    pred_t2 <- pred_t2[pred_t2$dataType == "Test",]
+    # Df predictions
+    predictions = data.frame(treatment_1 =numeric(nrow(pred_t1)),
+                             treatment_2 =numeric(nrow(pred_t2)),
+                             control=numeric(nrow(pred_control)))
+    predictions$treatment_1 <- pred_t1[,outcome_positive]
+    predictions$treatment_2 <- pred_t2[,outcome_positive]
+    predictions$control <- pred_control[,outcome_positive]
+    
+  } else if (approach == "DIA"){
+
   
-  ## Step 1: Retrieve the probability of an individual responding when he is not being treated (treatmentVariable(s) = 0).
-  modelProbs.Control <- extractProb(list(model$model.ct), 
-                                    testX = df.test[,model$predictors], 
-                                    testY = df.test[,model$targetVariable])
-  
-  modelProbs.Control.Results <- modelProbs.Control[modelProbs.Control$dataType == "Test",]
-  
-  ## Step 2: Retrieve the probability of an individual responding when he is being treated with Treatment 1 (treatmentVariable1 = 1).
-  modelProbs.Treatment1 <- extractProb(list(model$model.t1), 
-                                       testX = df.test[,model$predictors], 
-                                       testY = df.test[,model$targetVariable])
-  
-  modelProbs.Treatment1.Results <- modelProbs.Treatment1[modelProbs.Treatment1$dataType == "Test",]
-  
-  ## Step 3: Retrieve the probability of an individual responding when he is being treated with Treatment 2 (treatmentVariable2 = 1).
-  modelProbs.Treatment2 <- extractProb(list(model$model.t2), 
-                                       testX = df.test[,model$predictors], 
-                                       testY = df.test[,model$targetVariable])
-  
-  modelProbs.Treatment2.Results <- modelProbs.Treatment2[modelProbs.Treatment2$dataType == "Test",]
-  
-  predictions = data.frame(treatment1=numeric(nrow(modelProbs.Treatment1.Results)),
-                           treatment2=numeric(nrow(modelProbs.Treatment2.Results)),
-                           control=numeric(nrow(modelProbs.Control.Results)))
-  
-  predictions$treatment1 <- modelProbs.Treatment1.Results[,model$targetPositiveClass]
-  predictions$treatment2 <- modelProbs.Treatment2.Results[,model$targetPositiveClass]
-  predictions$control <- modelProbs.Control.Results[,model$targetPositiveClass]
-  
-  return(predictions)
-}
