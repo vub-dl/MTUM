@@ -137,5 +137,3 @@ stratified.crossvalidation <- function(data,
   
   return(fold_list)
 }
-
-# When there are 3 treatments
