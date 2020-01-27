@@ -210,9 +210,50 @@ multi_model <- function(df_train,
     
     ans <- list(model_t1 = model_t1, 
                 model_t2 = model_t2)
-              
-   
-   
-   
-   
-   
+    
+    } else if (model == "NUACCIF"){
+     
+    # Treatment 1 vs. control
+    df_t1 <- df_train
+    df_t1 <- subset(df_t1, df_t1[,treatment_1] == 1 | df_t1[,treatment_2] == 0)
+    variables_t1 <- c(features, treatment_1, outcome)
+    df_t1 <- df_t1[,variables_t1]
+    t1 <- df_t1[,treatment_1]
+    y1 <- df_t1[,outcome]
+    # Treatment 2 vs. control
+    df_t2 <- df_train
+    df_t2 <- subset(df_t2, df_t2[,treatment_1] == 0 | df_t2[,treatment_2] == 1)
+    variables_t2 <- c(features, treatment_2, outcome)
+    df_t2 <- df_t2[,variables_t2]
+    t2 <- df_t2[,treatment_2]
+    y2 <- df_t2[,outcome]
+    # Training
+    # Formula Treatment 1 vs. control
+    formula_t1 <- as.formula(paste("y1 ~", "trt(t1) +", paste(features, sep = "", collapse = "+")))
+    formula_t2 <- as.formula(paste("y2 ~", "trt(t2) +", paste(features, sep = "", collapse = "+")))
+    set.seed(seed)
+    model_t1 <- ccif(formula_t1, data = df_t1, ntree = 500, split_method = "ED", pvalue = 0.01)
+    set.seed(seed)
+    model_t2 <- ccif(formula_t2, data = df_t2, ntree = 500, split_method = "ED", pvalue = 0.01)
+    
+    ans <- list(model_t1 = model_t1, 
+                model_t2 = model_t2)
+                
+    } else if (model == "MMOALR"){   
+    
+    formula <- as.formula(paste("multi_outcome ~", paste(features, sep = "", collapse = "+")))
+    set.seed(seed)
+    model <- nnet::multinom(formula, data = df_train)
+    ans <- model
+    
+    } else if (model == "MMOARF"){ 
+    
+    set.seed(seed)
+    formula <- as.formula(paste("multi_outcome ~", paste(features, sep = "", collapse = "+")))
+    df_train$multi_outcome <- as.factor(df_train$multi_outcome)
+    model <- randomForest::randomForest(formula, data = df_train,ntree = 500)
+    ans <- model                                 
+    
+    }
+   return(ans)
+}
