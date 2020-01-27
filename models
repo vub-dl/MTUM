@@ -117,13 +117,70 @@ multi_model <- function(df_train,
   
     ans <- list(model)  
   
-    } else if (model == "DIALR"){
-
+    } else if (model == "DIARF"){
+    
+    # Factorize outcome variable
+    df_train[,outcome] <- factor(df_train[,outcome])
+    levels(df_train[,outcome]) <- c(outcome_negative, outcome_positive)
+    # Feature selection
+      if(length(features) <= 5){
+        features <- features
+      } else if(length(features) > 5){
+        # DF treatment_1
+        df_treatment_1 <- subset(df_train, df_train[,treatment_1] == 1)
+        # DF treatment_2
+        df_treatment_2 <- subset(df_train, df_train[,treatment_2] == 1)
+        # DF control
+        df_control <- subset(df_train, df_train[,treatment_1] == 0 & df_train[,treatment_2] == 0)
+        set.seed(seed)
+        ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
+        set.seed(seed)
+        model_treatment_1 <- train(df_treatment_1[,features], df_treatment_1[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
+        final_model_treatment_1 <- model_treatment_1[["finalModel"]][["formula"]][[3]]
+        features_model_treatment_1 <- all.vars(final_model_treatment_1)
+        set.seed(seed)
+        model_treatment_2 <- train(df_treatment_2[,features], df_treatment_2[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
+        final_model_treatment_2 <- model_treatment_2[["finalModel"]][["formula"]][[3]]
+        features_model_treatment_2 <- all.vars(final_model_treatment_2)
+        features <- union(features_model_treatment_1, features_model_treatment_2)
+        set.seed(seed)
+        model_control <- train(df_control[,features], df_control[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
+        final_model_control <- model_control[["finalModel"]][["formula"]][[3]]
+        features_model_treatment_control <- all.vars(final_model_control)
+        features <- union(features, features_model_treatment_control)
+      }
+     # Interactions 
+      # Treatment 1
+      xt1 <- df_train[,features] * df_train[,treatment_1]
+      colnames(xt1) <- paste("Inter1", colnames(xt1), sep = "_")
+      # Treatment 2
+      xt2 <- df_train[,features] * df_train[,treatment_2]
+      colnames(xt2) <- paste("Inter2", colnames(xt2), sep = "_")
+      df_interactions <- cbind(df_train[,c(features,treatment_1,treatment_2, outcome)], xt1, xt2)
+    # Features
+      features <- c(features, colnames(xt1), colnames(xt2), treatment_1, treatment_2)
+    # Training
+      set.seed(seed)
+      ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
+      set.seed(seed)
+      model <- train(df_interactions[,features], df_interactions[,outcome], method="rf", ntree = 500, metric="ROC", trControl=ctrl)
+      
+      ans <- model 
+      
+   } else if (model == "CKNN"){
+      
+     # Factorize outcome variable
+     df_train[,outcome] <- factor(df_train[,outcome])
+     levels(df_train[,outcome]) <- c(outcome_negative, outcome_positive)
+     # Treatment indicator in training set
+     df_train$indicator_treatment <- ifelse(df_train[,treatment_1] == 1, 1, ifelse(df_train[,treatment_2] == 1, 2, 0))
+     df_train$indicator_treatment <- as.factor(df_train$indicator_treatment)
+     # Treatment indicator in test set
+     df_test$indicator_treatment <- ifelse(df_test[,treatment_1] == 1, 1, ifelse(df_test[,treatment_2] == 1, 2, 0))
+     df_test$indicator_treatment <- as.factor(df_test$indicator_treatment)
+     # Training
+     set.seed(seed)
+     model <- upliftKNN(df_train[,features], df_test[,features], df_train[,"outcome"], df_train[,"indicator_treatment"], k = 10)
+     ans <- model
+  
 }
-
-# Model-object
-  ans <- list(model.t1 = model_treatment_1,
-              model.t2 = model_treatment_2,
-              model.ct = model_control,
-  return(ans)
-
