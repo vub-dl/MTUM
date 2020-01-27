@@ -35,9 +35,9 @@ model_mtum <- function(df_train,
       set.seed(seed)
       model_control <- train(df_control[,features], df_control[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
       
-      ans <- list(model.t1 = model_treatment_1,
-              model.t2 = model_treatment_2,
-              model.ct = model_control)
+      ans <- list(model_t1 = model_treatment_1,
+                  model_t2 = model_treatment_2,
+                  model_control = model_control)
   
   } else if (model == "SMARF"){
 
@@ -63,9 +63,9 @@ model_mtum <- function(df_train,
       set.seed(seed)
       model_control <- train(df_control[,features], df_control[,outcome], method="rf", ntree = 500, metric="ROC", trControl=ctrl)
   
-    ans <- list(model.t1 = model_treatment_1,
-                model.t2 = model_treatment_2,
-                model.ct = model_control)
+    ans <- list(model_t1 = model_treatment_1,
+                model_t2 = model_treatment_2,
+                model_control = model_control)
               
   } else if (model == "DIALR"){
   
