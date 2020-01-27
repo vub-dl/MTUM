@@ -34,6 +34,10 @@ multi_model <- function(df_train,
       # Model control
       set.seed(seed)
       model_control <- train(df_control[,features], df_control[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
+      
+      ans <- list(model.t1 = model_treatment_1,
+              model.t2 = model_treatment_2,
+              model.ct = model_control)
   
   } else if (model == "SMARF"){
 
@@ -59,15 +63,19 @@ multi_model <- function(df_train,
       set.seed(seed)
       model_control <- train(df_control[,features], df_control[,outcome], method="rf", ntree = 500, metric="ROC", trControl=ctrl)
   
+    ans <- list(model.t1 = model_treatment_1,
+              model.t2 = model_treatment_2,
+              model.ct = model_control)
+              
   } else if (model == "DIALR"){
   
     # Factorize outcome variable
     df_train[,outcome] <- factor(df_train[,outcome])
     levels(df_train[,outcome]) <- c(outcome_negative, outcome_positive)
     # Feature selection
-      if(length(predictors) <= 5){
-        selected.features <- predictors
-      } else if(length(predictors) > 5){
+      if(length(features) <= 5){
+        features <- features
+      } else if(length(features) > 5){
         # DF treatment_1
         df_treatment_1 <- subset(df_train, df_train[,treatment_1] == 1)
         # DF treatment_2
@@ -84,59 +92,32 @@ multi_model <- function(df_train,
         model_treatment_2 <- train(df_treatment_2[,features], df_treatment_2[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
         final_model_treatment_2 <- model_treatment_2[["finalModel"]][["formula"]][[3]]
         features_model_treatment_2 <- all.vars(final_model_treatment_2)
+        features <- union(features_model_treatment_1, features_model_treatment_2)
+        set.seed(seed)
+        model_control <- train(df_control[,features], df_control[,outcome], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
+        final_model_control <- model_control[["finalModel"]][["formula"]][[3]]
+        features_model_treatment_control <- all.vars(final_model_control)
+        features <- union(features, features_model_treatment_control)
+      }
+    # Interactions 
+      # Treatment 1
+      xt1 <- df_train[,features] * df_train[,treatment_1]
+      colnames(xt1) <- paste("Inter1", colnames(xt1), sep = "_")
+      # Treatment 2
+      xt2 <- df_train[,features] * df_train[,treatment_2]
+      colnames(xt2) <- paste("Inter2", colnames(xt2), sep = "_")
+      df_interactions <- cbind(df_train[,c(features,treatment_1,treatment_2, outcome)], xt1, xt2)
+    # Features
+      features <- c(features, colnames(xt1), colnames(xt2), treatment_1, treatment_2)
+    # Training
+      set.seed(seed)
+      ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
+      set.seed(seed)
+      model <- train(df_interactions[,features], df_interactions[,outcome], method="glm", family=binomial(), metric="ROC", trControl=ctrl)
   
-  final.features.treatments <- union(final.features.model.t1, final.features.model.t2)
+    ans <- list(model)  
   
-  set.seed(seed)
-  model.ct <- train(df.train.ct[,predictors], df.train.ct[,targetVariable], method="glmStepAIC", family=binomial(), metric="ROC", trControl=ctrl)
-  final.model.ct <- model.ct[["finalModel"]][["formula"]][[3]]
-  final.features.model.ct <- all.vars(final.model.ct)
-  
-  selected.features <- union(final.features.treatments, final.features.model.ct)
-  }
-  
-  ## Creating interaction variables ##
-  
-  # Treatment 1
-  xt1 <- df.train[,selected.features] * df.train[,treatmentVariable1]
-  colnames(xt1) <- paste("Inter1", colnames(xt1), sep = "_")
-  
-  # Treatment 2
-  xt2 <- df.train[,selected.features] * df.train[,treatmentVariable2]
-  colnames(xt2) <- paste("Inter2", colnames(xt2), sep = "_")
-  
-  # Data frame with interaction of TWO treatments
-  
-  df.train.interaction <- cbind(df.train[,c(selected.features,treatmentVariable1,treatmentVariable2, targetVariable)], xt1, xt2)
-  
-  # Predictors model
-  predictors.interaction <- c(selected.features, colnames(xt1), colnames(xt2), treatmentVariable1, treatmentVariable2)
-  
-  ## Setting up training schema ##
-
-  set.seed(seed)
-  ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
-  
-  ## Training the model ##
-  
-  set.seed(seed)
-  model <- train(df.train.interaction[,predictors.interaction], df.train.interaction[,targetVariable], method="glm", family=binomial(), metric="ROC", trControl=ctrl)
-  
-  ## Building the model-object
-  ans <- list(model = model,
-              treatmentVariable1 = treatmentVariable1,
-              treatmentVariable2 = treatmentVariable2,
-              targetVariable = targetVariable,
-              targetPositiveClass = targetPositiveClass,
-              targetNegativeClass = targetNegativeClass,
-              predictors = selected.features)
-  class(ans) <- "Model.Lo.2002"
-  
-  # Returning the model
-  return(ans)
-
-  
-    
+    } else if (model == "DIALR"){
 
 }
 
