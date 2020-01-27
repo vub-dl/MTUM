@@ -64,8 +64,8 @@ multi_model <- function(df_train,
       model_control <- train(df_control[,features], df_control[,outcome], method="rf", ntree = 500, metric="ROC", trControl=ctrl)
   
     ans <- list(model.t1 = model_treatment_1,
-              model.t2 = model_treatment_2,
-              model.ct = model_control)
+                model.t2 = model_treatment_2,
+                model.ct = model_control)
               
   } else if (model == "DIALR"){
   
@@ -199,30 +199,18 @@ multi_model <- function(df_train,
     df_t2 <- df_t2[,variables_t2]
     t2 <- df_t2[,treatment_2]
     y2 <- df_t2[,outcome]
+    # Training
+    # Formula Treatment 1 vs. control
+    formula_t1 <- as.formula(paste("y1 ~", "trt(t1) +", paste(features, sep = "", collapse = "+")))
+    formula_t2 <- as.formula(paste("y2 ~", "trt(t2) +", paste(features, sep = "", collapse = "+")))
+    set.seed(seed)
+    model_t1 <- upliftRF(formula_t1, data = df_t1, ntree = 500, split_method = "KL")
+    set.seed(seed)
+    model_t2 <- upliftRF(formula_t2, data = df_t2, ntree = 500, split_method = "KL")
     
-  ## Setting up training schema ##
-  modelFormT1 <- as.formula(paste("y1 ~", "trt(t1) +", paste(predictors, sep = "", collapse = "+")))
-  modelFormT2 <- as.formula(paste("y2 ~", "trt(t2) +", paste(predictors, sep = "", collapse = "+")))
-  
-  seed <- 100
-  set.seed(seed)
-  model.t1 <- upliftRF(modelFormT1, data = data.t1, ntree = 500, split_method = "KL")
-  
-  set.seed(seed)
-  model.t2 <- upliftRF(modelFormT2, data = data.t2, ntree = 500, split_method = "KL")
-  
-  ## Building the model-object
-  ans <- list(model.t1 = model.t1,
-              model.t2 = model.t2,
-              treatmentVariable1 = treatmentVariable1,
-              treatmentVariable2 = treatmentVariable2,
-              targetVariable = targetVariable,
-              predictors = predictors)
-  
-  class(ans) <- "Model.Guelman.RF"
-  
-  # Returning the model
-  return(ans)
+    ans <- list(model_t1 = model_t1, 
+                model_t2 = model_t2)
+              
    
    
    
