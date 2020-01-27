@@ -1,7 +1,7 @@
 # Multitreatment uplift modeling prediction
 # Based on single treatment uplift modeling by Floris Devriendt
 
-predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outcome_negative, treatment_1,treatment_2){
+predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outcome_negative, treatment_1,treatment_2,model_t1,model_t2,model_control){
   
   if(approach == "sma"){
   
@@ -70,6 +70,27 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
     predictions$treatment_1 <- pred_t1[,outcome_positive]
     predictions$treatment_2 <- pred_t2[,outcome_positive]
     predictions$control <- pred_control[,outcome_positive]
+  
+  } else if (approach == "NUA"){
+    
+    # Scores treatment 1 vs. control
+    pred_t1 <- predict(model_t1,df_test[,features])
+    # Scores treatment 2 vs. control
+    pred_t2 <- predict(model_t2,df_test[,features])
+    predictions = data.frame(treatment_1=numeric(nrow(pred_t1)),
+                             treatment_2=numeric(nrow(pred_t2)),
+                             control_t1=numeric(nrow(pred_t1)),
+                             control_t2=numeric(nrow(pred_t2)))
+    predictions$treatment_1 <- pred_t1[,1]
+    predictions$treatment_2 <- pred_t2[,1]
+    predictions$control_t1 <- pred_t1[,2]
+    predictions$control_t2 <- pred_t2[,2]
+  
+  } else if (approach == "MMOA"){
+  
+    predictions <- function(model,df_test){
+    predictions <- car::Predict(model, df_test, type = "prob")
+  }
   
   return(predictions)
 }
