@@ -1,7 +1,7 @@
 # Multitreatment uplift modeling approaches
 # Based on single treatment uplift modeling by Floris Devriendt
 
-multi_model <- function(df_train,
+model_mtum <- function(df_train,
                          treatment_1,
                          treatment_2, 
                          outcome, 
