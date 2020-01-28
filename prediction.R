@@ -26,7 +26,7 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
     predictions$control <- pred_control[,outcome_positive]
     return(predictions)                               
     
-  } else if (approach == "DIA"){
+  } else if (approach == "dia"){
   
     # Factorize outcome variable
     df_test[,outcome] <- factor(df_test[,outcome)
@@ -73,7 +73,7 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
     predictions$control <- pred_control[,outcome_positive]
     return(predictions)   
                                         
-  } else if (approach == "NUA"){
+  } else if (approach == "nua"){
     
     # Scores treatment 1 vs. control
     pred_t1 <- predict(model_t1,df_test[,features])
@@ -89,7 +89,7 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
     predictions$control_t2 <- pred_t2[,2]
     return(predictions)   
     
-  } else if (approach == "MMOA"){
+  } else if (approach == "mmoa"){
   
     predictions <- function(model,df_test){
     predictions <- car::Predict(model, df_test, type = "prob")
