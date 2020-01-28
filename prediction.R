@@ -1,7 +1,7 @@
 # Multitreatment uplift modeling prediction
 # Based on single treatment uplift modeling by Floris Devriendt
 
-predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outcome_negative, treatment_1,treatment_2,model_t1,model_t2,model_control){
+predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outcome_negative, treatment_1,treatment_2,model){
   
   if(approach == "sma"){
   
@@ -9,13 +9,13 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
     df_test[,outcome] <- factor(df_test[,outcome)
     levels(df_test[,outcome]) <- c(outcome_negative, outcome_positive)
     # Scores control
-    pred_control <- extractProb(list(model_control), testX = df_test[,features],testY = df_test[,outcome])
+    pred_control <- extractProb(list(model$model_control), testX = df_test[,features],testY = df_test[,outcome])
     pred_control <- pred_control[pred_control$dataType == "Test",]
     # Scores treatment 1
-    pred_t1 <- extractProb(list(model_t1), testX = df_test[,features],testY = df_test[,outcome])
+    pred_t1 <- extractProb(list(model$model_t1), testX = df_test[,features],testY = df_test[,outcome])
     pred_t1 <- pred_t1[pred_t1$dataType == "Test",]
     # Scores treatment 2
-    pred_t2 <- extractProb(list(model_t2), testX = df_test[,features],testY = df_test[,outcome])
+    pred_t2 <- extractProb(list(model$model_t2), testX = df_test[,features],testY = df_test[,outcome])
     pred_t2 <- pred_t2[pred_t2$dataType == "Test",]
     # Df predictions
     predictions = data.frame(treatment_1 =numeric(nrow(pred_t1)),
@@ -76,9 +76,9 @@ predict_mtum <- function(approach,df_test,outcome,features,outcome_positive,outc
   } else if (approach == "nua"){
     
     # Scores treatment 1 vs. control
-    pred_t1 <- predict(model_t1,df_test[,features])
+    pred_t1 <- predict(model$model_t1,df_test[,features])
     # Scores treatment 2 vs. control
-    pred_t2 <- predict(model_t2,df_test[,features])
+    pred_t2 <- predict(model$model_t2,df_test[,features])
     predictions = data.frame(treatment_1=numeric(nrow(pred_t1)),
                              treatment_2=numeric(nrow(pred_t2)),
                              control_t1=numeric(nrow(pred_t1)),
