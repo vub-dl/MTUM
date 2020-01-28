@@ -21,8 +21,17 @@ Load the scripts:
 scripts <- list("bias_correct.R","stratified.R","models.R","prediction.R","performance.R")
 lapply(scripts, source)
 ```
-Apply matching to reduce the correct selection bias
+Apply matching to reduce the correct selection bias:
 
 ```r
-Uplift_matching <- (dataset,"treatment_column","name_treatment_1","name_treatment_1","name_control", vector_features)
+Uplift_matching <- ps_matching(dataset,"treatment_column","name_treatment_1","name_treatment_2","name_control", vector_features)
 ```
+Create the training and test folds by applying stratified cross-validation:
+
+```r
+folds <- stratified.crossvalidation(dataset,"name_control","name_treatment_1","name_treatment_2","name_outcome",10)
+```
+
+
+
+
