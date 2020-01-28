@@ -105,3 +105,30 @@ performance_table <- function(predictions,df_test,uplift_predictions,indicator_t
   return(res)
 }
 
+# Expected response
+expected_response <- function(df_test,predictions,uplift_predictions,indicator_treatment,treatment_1,treatment_2,control){
+  obs.treat.probs <- as.data.frame(prop.table(table(df_test[,indicator_treatment])))
+  obs.prob.ct <- obs.treat.probs[which(obs.treat.probs$Var1 == ppdf$control),2]
+  obs.prob.t1 <- obs.treat.probs[which(obs.treat.probs$Var1 == ppdf$treatment_1),2]
+  obs.prob.t2 <- obs.treat.probs[which(obs.treat.probs$Var1 == ppdf$treatment_2),2]
+  df_predictions <- as.data.frame(predictions)
+  df_predictions$dif.pred <- uplift_predictions[,1]
+  df_predictions$opt.treat <- uplift_predictions[,2]
+  df_predictions$obs.treat <- ifelse(df_test[,indicator_treatment] == treatment_1,1,ifelse(df_test[,indicator_treatment] == treatment_2,2,0))
+  df_predictions$outcome <- df_test[,outcome]
+  df_predictions$z.opt <- ((df_predictions$outcome/obs.prob.ct)*(ifelse(df_predictions$opt.treat == 0,1,0))*(ifelse(df_predictions$obs.treat == 0,1,0)))+
+                          ((df_predictions$outcome/obs.prob.t1)*(ifelse(df_predictions$opt.treat == 1,1,0))*(ifelse(df_predictions$obs.treat == 1,1,0)))+
+                          ((df_predictions$outcome/obs.prob.t2)*(ifelse(df_predictions$opt.treat == 2,1,0))*ifelse(df_predictions$obs.treat == 2,1,0))
+  df_predictions$z.ct <- (df_predictions$outcome/obs.prob.ct)*ifelse(df_predictions$obs.treat==0,1,0)
+  predictions_order <- order(df_predictions$dif.pred,decreasing = TRUE)
+  predictions_sorted <- df_predictions[predictions_order,]
+  average.expected.response <- c()
+  for (x in 1:(nrow(predictions_sorted)-1)){
+    average.expected.response[x] <- (sum(predictions_sorted[1:x,"z.opt"])+sum(predictions_sorted[(x+1):nrow(predictions_sorted),"z.ct"]))/nrow(predictions_sorted)
+  }
+  all.control <- mean(predictions_sorted$z.ct)
+  all.opt.treat <- mean(predictions_sorted$z.opt)
+  average.expected.response <- c(all.control,average.expected.response,all.opt.treat)
+  res <- data.frame(x = seq(0,length(average.expected.response)-1),z=average.expected.response)
+  return(res)
+}
