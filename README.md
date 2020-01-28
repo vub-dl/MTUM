@@ -9,7 +9,15 @@ Single treatment studies have dominated the uplift modeling literature, and appl
 
 Our study proposes two novel techniques: the naive uplift approach and the multitreatment modified outcome approach. Moreover, a benchmarking experiment is performed to contrast the performances of different multitreatment uplift modeling techniques across eight data sets from various domains. We verify and, if needed, correct the imbalance among the pretreatment characteristics of the treatment groups by means of optimal propensity score matching, which ensures a correct interpretation of the estimated uplift. Conventional and recently proposed evaluation metrics are adapted to the multitreatment scenario to assess performance. 
 
+Load the packages:
+
 ```r
 packages <- list("caret","splitstackshape","scales","corrplot","AppliedPredictiveModeling","ggplot2","uplift","plyr","ggpubr","moments","stringr","sas7bdat","randomForest","nnet","twang","RItools","RItools","tableone","MatchIt","car","reshape2","ggthemes","rowr")
 lapply(packages, require, character.only = TRUE)
+```
+Load scripts:
+
+```r
+scripts <- list("bias_correct.R","stratified.R","models.R","prediction.R","performance.R")
+lapply(scripts, source)
 ```
