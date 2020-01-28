@@ -1,4 +1,4 @@
-# Based on Guelman and Floris Devriendt
+# Based on Leo Guelman and Floris Devriendt
 # Evaluating the performance of MTUM
 
 # Compute the uplift score based on model predictions
