@@ -31,6 +31,12 @@ Create the training and test folds by applying stratified cross-validation:
 ```r
 folds <- stratified.crossvalidation(dataset,"name_control","name_treatment_1","name_treatment_2","name_outcome",10)
 ```
+Training multitreatment uplift modeling:
+
+```r
+model <- model_mtum(df_train,"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
+```
+
 
 
 
