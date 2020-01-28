@@ -15,9 +15,14 @@ Load the packages:
 packages <- list("caret","splitstackshape","scales","corrplot","AppliedPredictiveModeling","ggplot2","uplift","plyr","ggpubr","moments","stringr","sas7bdat","randomForest","nnet","twang","RItools","RItools","tableone","MatchIt","car","reshape2","ggthemes","rowr")
 lapply(packages, require, character.only = TRUE)
 ```
-Load scripts:
+Load the scripts:
 
 ```r
 scripts <- list("bias_correct.R","stratified.R","models.R","prediction.R","performance.R")
 lapply(scripts, source)
+```
+Apply matching to reduce the correct selection bias
+
+```r
+Uplift_matching <- (dataset,"treatment_column","name_treatment_1","name_treatment_1","name_control", vector_features)
 ```
