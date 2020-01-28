@@ -1,5 +1,4 @@
 # Adapted version by Floris Devriendt from Leo Guelman
-
 qini <- function(x, direction = 1, plotit = TRUE, title="",...) {
    
   perf <- x
