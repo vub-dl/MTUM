@@ -34,7 +34,26 @@ folds <- stratified.crossvalidation(dataset,"name_control","name_treatment_1","n
 Training multitreatment uplift modeling:
 
 ```r
-model <- model_mtum(df_train,"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
+model <- model_mtum(training_dataset,"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
+```
+Model predictions:
+
+```r
+predictions <- predict_mtum("approach_name",test_dataset,"name_outcome",vector_features,"YES","NO","name_treatment_1","name_treatment_2",model)
+```
+Evaluate model performance:
+
+```r
+predicted_uplift <- uplift_score(predictions,"model_name",test_dataset,"name_control","treatment_column","name_treatment_1","name_treatment_2")
+
+performance <- performance_table(predictions, test_dataset,predicted_uplift,"treatment_column","name_outcome","name_control","name_treatment_1","name_treatment_2")
+
+er <- expected_response(test_dataset,predictions,predicted_uplift,"treatment_column","name_treatment_1","name_treatment_2","name_control")
+```
+Compute the qini metric:
+
+```r
+res_qini <- qini(performance, 1)
 ```
 
 
