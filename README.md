@@ -45,7 +45,7 @@ for (i in 1:10){
 Training multitreatment uplift modeling:
 
 ```r
-model <- model_mtum(training_df,"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
+model <- model_mtum(training_df[[i]],"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
 ```
 Model predictions:
 
