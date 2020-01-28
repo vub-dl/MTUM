@@ -1,8 +1,8 @@
+# Based on Guelman and Floris Devriendt
 # Evaluating the performance of MTUM
 
 # Compute the uplift score based on model predictions
-
-uplift_score <- function(predictions,model_name,df_test,control,treatment_1,treatment_2){
+uplift_score <- function(predictions,model_name,df_test,indicator_treatment,control,treatment_1,treatment_2){
   
   if(model_name == "sma" | model_name == "dia"){
     
@@ -72,3 +72,36 @@ uplift_score <- function(predictions,model_name,df_test,control,treatment_1,trea
     return(uplift_predictions)
   }
 }
+    
+# Compute the performance table 
+performance_table <- function(predictions,df_test,uplift_predictions,indicator_treatment,outcome,treatment_1,treatment_2){
+
+  df_test <- df_test[,c(indicator_treatment,outcome)]
+  df_performance <- cbind(df_test,predictions,uplift_predictions)
+  df_performance$correct_pred <- ifelse(df_performance[,indicator_treatment] == treatment_1 & df_performance$pred.treat == 1,1, 
+                                 ifelse(df_performance[,indicator_treatment] == treatment_1 & df_performance$pred.treat == 2,1,
+                                 ifelse(df_performance[,indicator_treatment] == control,1,0)))
+  performance.order <- order(df_performance$max.dif, decreasing = TRUE)
+  performance.sorted <- df_performance[performance.order,]
+  performance.sorted[,"n.treat"] <- ifelse(performance.sorted[,indicator_treatment] == treatment_1 | performance.sorted[,indicator_treatment] == treatment_2,1,0)
+  performance.sorted[,"n.control"] <- ifelse(performance.sorted[,indicator_treatment] == control,1,0)
+  performance.sorted[,"n.y1_treat"] <- ifelse(performance.sorted[,"n.treat"] & performance.sorted[,outcome] == 1,1,0)
+  performance.sorted[,"n.y1_control"] <- ifelse(performance.sorted[,"n.control"] == 1 & performance.sorted[,outcome] == 1,1,0)
+  performance.sorted[,"r.y1_treat"] <- performance.sorted$n.y1_treat/performance.sorted$n.treat
+  performance.sorted[,"r.y1_control"] <- performance.sorted$n.y1_control/performance.sorted$n.control
+  performance.sorted[is.na(performance.sorted)] <- 0
+  performance.sorted[,"uplift"] <- performance.sorted[,"r.y1_treat"] - performance.sorted[,"r.y1_control"]
+  df_performance <- subset(performance.sorted, correct_pred == 1)
+  res <- cbind.data.frame(group   = 1:nrow(df_performance),
+                          n.treat    = df_performance$n.treat,
+                          n.control    = df_performance$n.control, 
+                          n.y1_treat = df_performance$n.y1_treat, 
+                          n.y1_control = df_performance$n.y1_control,
+                          r.y1_treat = df_performance$r.y1_treat, 
+                          r.y1_control = df_performance$r.y1_control,
+                          uplift   = df_performance$uplift)
+                
+  #class(res) <- "performance"
+  return(res)
+}
+
