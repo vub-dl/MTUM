@@ -38,6 +38,7 @@ model_mtum <- function(df_train,
       ans <- list(model_t1 = model_treatment_1,
                   model_t2 = model_treatment_2,
                   model_control = model_control)
+    return(ans)
   
   } else if (model == "SMARF"){
 
@@ -66,6 +67,7 @@ model_mtum <- function(df_train,
     ans <- list(model_t1 = model_treatment_1,
                 model_t2 = model_treatment_2,
                 model_control = model_control)
+    return(ans)
               
   } else if (model == "DIALR"){
   
@@ -114,9 +116,9 @@ model_mtum <- function(df_train,
       ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
       set.seed(seed)
       model <- train(df_interactions[,features], df_interactions[,outcome], method="glm", family=binomial(), metric="ROC", trControl=ctrl)
-  
-    ans <- list(model)  
-  
+      ans <- list(model)  
+      return(ans)
+    
     } else if (model == "DIARF"){
     
     # Factorize outcome variable
@@ -164,8 +166,8 @@ model_mtum <- function(df_train,
       ctrl <- trainControl(method = "none", summaryFunction = twoClassSummary, classProbs = TRUE, savePredictions = TRUE)
       set.seed(seed)
       model <- train(df_interactions[,features], df_interactions[,outcome], method="rf", ntree = 500, metric="ROC", trControl=ctrl)
-      
       ans <- model 
+      return(ans)
       
    } else if (model == "CKNN"){
       
@@ -182,6 +184,7 @@ model_mtum <- function(df_train,
      set.seed(seed)
      model <- upliftKNN(df_train[,features], df_test[,features], df_train[,"outcome"], df_train[,"indicator_treatment"], k = 10)
      ans <- model
+     return(ans)
    
    } else if (model == "NUARF"){
    
@@ -210,6 +213,7 @@ model_mtum <- function(df_train,
     
     ans <- list(model_t1 = model_t1, 
                 model_t2 = model_t2)
+    return(ans)
     
     } else if (model == "NUACCIF"){
      
@@ -238,6 +242,7 @@ model_mtum <- function(df_train,
     
     ans <- list(model_t1 = model_t1, 
                 model_t2 = model_t2)
+    return(ans)
                 
     } else if (model == "MMOALR"){   
     
@@ -245,6 +250,7 @@ model_mtum <- function(df_train,
     set.seed(seed)
     model <- nnet::multinom(formula, data = df_train)
     ans <- model
+    return(ans)
     
     } else if (model == "MMOARF"){ 
     
@@ -253,7 +259,6 @@ model_mtum <- function(df_train,
     df_train$multi_outcome <- as.factor(df_train$multi_outcome)
     model <- randomForest::randomForest(formula, data = df_train,ntree = 500)
     ans <- model                                 
-    
+    return(ans)
     }
-   return(ans)
 }
