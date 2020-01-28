@@ -1,13 +1,3 @@
----
-title: "Experimental Evaluation of Multiple Treatment Uplift Modeling"
-author: "Diego Olaya"
-date: "February, 2018"
-output:
-  pdf_document: default
-  html_document:
-    number_sections: yes
----
-
 # Load packages
 ```{r}
 packages <- list("caret","splitstackshape","scales","corrplot","AppliedPredictiveModeling","ggplot2","uplift","plyr","ggpubr","moments","stringr","sas7bdat","randomForest","nnet","twang","RItools","RItools","tableone","MatchIt","car","reshape2","ggthemes","rowr")
@@ -18,3 +8,4 @@ lapply(packages, require, character.only = TRUE)
 scripts <- list("bias_correct.R","stratified.R","models.R","prediction.R","performance.R")
 lapply(scripts, source)
 ```
+
