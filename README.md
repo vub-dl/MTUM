@@ -45,29 +45,32 @@ for (i in 1:10){
 Training multitreatment uplift modeling:
 
 ```r
-model <- model_mtum(training_df[[i]],"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
+model <- list()
+for (i in 1:10){
+  model[[i]] <-model_mtum(training_df[[i]],"name_treatment_1","name_treatment_2","name_outcome","YES","NO",vector_features,"name_model")
 ```
 Model predictions:
 
 ```r
-predictions <- predict_mtum("approach_name",test_df,"name_outcome",vector_features,"YES","NO","name_treatment_1","name_treatment_2",model)
+precictions <- list()
+for (i in 1:10){
+predictions[[i]] <- predict_mtum("approach_name",test_df[[i]],"name_outcome",vector_features,"YES","NO","name_treatment_1","name_treatment_2",model[[i]])
 ```
 Evaluate model performance:
 
 ```r
-predicted_uplift <- uplift_score(predictions,"model_name",test_dataset,"name_control","treatment_column","name_treatment_1","name_treatment_2")
+predicted_uplift <- list()
+performance <- list()
+er <- list()
+res_qini <- list()
 
-performance <- performance_table(predictions, test_dataset,predicted_uplift,"treatment_column","name_outcome","name_control","name_treatment_1","name_treatment_2")
+for (i in 1:10){
+predicted_uplift[[i]] <- uplift_score(predictions[[i]],"model_name",test_df[[i]],"name_control","treatment_column","name_treatment_1","name_treatment_2")
 
-er <- expected_response(test_dataset,predictions,predicted_uplift,"treatment_column","name_treatment_1","name_treatment_2","name_control")
+performance[[i]] <- performance_table(predictions[[i]], test_df[[i]],predicted_uplift[[i]],"treatment_column","name_outcome","name_control","name_treatment_1","name_treatment_2")
+
+er[[i]] <- expected_response(test_df[[i]],predictions[[i]],predicted_uplift[[i]],"treatment_column","name_treatment_1","name_treatment_2","name_control")
+
+res_qini[[i]] <- qini(performance[[i]], 1)
+}
 ```
-Compute the qini metric:
-
-```r
-res_qini <- qini(performance, 1)
-```
-
-
-
-
-
