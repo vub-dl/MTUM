@@ -74,7 +74,7 @@ uplift_score <- function(predictions,model_name,df_test,indicator_treatment,cont
 }
     
 # Compute the performance table 
-performance_table <- function(predictions,df_test,uplift_predictions,indicator_treatment,outcome,treatment_1,treatment_2){
+performance_table <- function(predictions,df_test,uplift_predictions,indicator_treatment,outcome,control,treatment_1,treatment_2){
 
   df_test <- df_test[,c(indicator_treatment,outcome)]
   df_performance <- cbind(df_test,predictions,uplift_predictions)
