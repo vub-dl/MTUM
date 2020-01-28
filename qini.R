@@ -1,5 +1,5 @@
 # Adapted version by Floris Devriendt from Leo Guelman
-qini <- function(x, direction, plotit = TRUE, title="",...) {
+qini <- function(x, direction) {
    
   perf <- x
   groups <- nrow(perf)
